@@ -76,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
     HashMap<Long, Long> primes;
     HashMap<Long, ArrayList<Long>> spectres;
     HashMap<Long, ArrayList<Long>> toppings;
-    HashMap<Long, Long> indexed;
     long startTime;
 
     @OnClick(R.id.fab)
@@ -115,21 +114,20 @@ public class MainActivity extends AppCompatActivity {
 
     public HashMap<Long, Long> serialPrimes() {
         long range = Long.parseLong(this.range.getText().toString());
-        HashMap<Long, Long> primes = new HashMap<>(); //простые числа и их топпинги
-        HashMap<Long, ArrayList<Long>> spectres = new HashMap<>(); // непростые числа и их множители
-        HashMap<Long, ArrayList<Long>> toppings = new HashMap<>(); // топпинги и накопленые по ним спектры
-        HashMap<Long, Long> indexed = new HashMap<>(); // статистические данные, зависимые от индекса
+        HashMap<Long, Long> primes = new HashMap<>(); //primes and their toppings
+        HashMap<Long, ArrayList<Long>> spectres = new HashMap<>(); // not primes with their spectres (sets of dividers)
+        HashMap<Long, ArrayList<Long>> toppings = new HashMap<>(); // toppings with accumulated spectres
         for(long i = 2; i < range; i++){
-            if(toppings.keySet().contains(i)) { // если в таблице топпингов имеется ключ, равный текущему значению счетчика i
-                //переносим собраный спектр
+            if(toppings.keySet().contains(i)) { // if toppings table contains key == i
+                //move spectre to its table
                 ArrayList<Long> spectre = toppings.get(i);
                 spectres.put(i, spectre);
                 toppings.remove(i);
                 for(long spectreValue : spectre) {
-                    // обновляем топпинг на один шаг дальше
+                    // update topping with one step up
                     long topping = primes.get(spectreValue) + spectreValue;
                     primes.put(spectreValue, topping);
-                    // пополняем спектр новым значением
+                    // this is not prime
                     if(toppings.keySet().contains(topping)) {
                         toppings.get(topping).add(spectreValue);
                     } else {
@@ -138,20 +136,18 @@ public class MainActivity extends AppCompatActivity {
                         toppings.put(topping, newSpectre);
                     }
                 }
-            } else { // если в таблице топпингов отсутствует ключ, равный текущему значению счетчика i
-                // записываем простое число
-                primes.put(i, i + i); // значение топпинга всегда больше текущего значения счетчика, ближайшее к нему делимое на ключ
-                // добавляем новое значение в топпинги
+            } else { // if table of toppings doesn't contains the key == i
+                // this is prime
+                primes.put(i, i + i); // topping value always more than counter (i), nearest to it key-divisable
+                // add topping to the table
                 ArrayList<Long> newSpectre = new ArrayList<>();
                 newSpectre.add(i);
                 toppings.put(i + i, newSpectre);
             }
-            indexed.put(i, (long) toppings.size());
         }
         this.primes = primes;
         this.spectres = spectres;
         this.toppings = toppings;
-        this.indexed = indexed;
         return primes;
     }
 
@@ -173,16 +169,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 }
